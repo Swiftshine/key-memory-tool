@@ -2,11 +2,11 @@
 #include "DolphinProcess/DolphinProcess.h"
 #include <vector>
 
-class DolphinReader {
+class DolphinAccessor {
 private:
-    static std::unique_ptr<DolphinReader> sInstance;
+    static std::unique_ptr<DolphinAccessor> sInstance;
 public:
-    static std::unique_ptr<DolphinReader>& Instance() {
+    static std::unique_ptr<DolphinAccessor>& Instance() {
         return sInstance;
     }
 
@@ -22,8 +22,8 @@ public:
     void Write8(const u32 address, u8 value);
     void Write16(const u32 address, u16 value, bool byteswap = true);
     void Write32(const u32 address, u32 value, bool byteswap = true);
-    void Write16(const u32 address, u64 value, bool byteswap = true);
+    void Write64(const u32 address, u64 value, bool byteswap = true);
     void WriteF32(const u32 address, f32 value, bool byteswap = true);
-    // void WriteF64(const u32 address, f64 value, bool byteswap = true);
+    void WriteF64(const u32 address, f64 value, bool byteswap = true);
 
 };
