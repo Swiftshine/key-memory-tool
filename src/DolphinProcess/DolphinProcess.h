@@ -1,8 +1,11 @@
 #pragma once
 
-#include <windows.h>
 #include "types.h"
 #include <memory>
+#include <windows.h>
+
+const u32 MEM1_START = 0x80000000;
+const u32 MEM2_START = 0x90000000;
 
 class DolphinProcess {
 private:
@@ -30,12 +33,19 @@ public:
         return NextPowerOf2(GetDefaultMEM2Size());
     }
 
+    static u32 GetMEM1End() {
+        return MEM1_START + GetMEM1Size();
+    }
+    
+    static u32 GetMEM2End() {
+        return MEM2_START + GetMEM2Size();
+    }
+
     // returns if the process id for Dolphin was found
     bool FindPID();
     bool Hook();
     bool ReadFromRAM(const u32 offset, char* buffer, size_t size, const bool byteswap);
     bool WriteToRAM(const u32 offset, const char* buffer, size_t size, const bool byteswap);
-
 private:
     int mPID;
     HANDLE mDolphinHandle;

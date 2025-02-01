@@ -1,5 +1,6 @@
-#include "DolphinProcess.h"
+#include "DolphinProcess/DolphinProcess.h"
 
+#include <vector>
 #include <cstring>
 #include <locale>
 #include <codecvt>
@@ -8,8 +9,6 @@
 #include <tlhelp32.h>
 #include <psapi.h>
 
-const u32 MEM1_START = 0x80000000;
-const u32 MEM2_START = 0x90000000;
 
 #ifdef UNICODE
     std::wstring utf8_to_wstring(const std::string& str) {
@@ -164,4 +163,48 @@ bool DolphinProcess::ReadFromRAM(const u32 offset, char* buffer, size_t size, co
     } 
 
     return false;
+}
+
+bool DolphinProcess::WriteToRAM(const u32 offset, const char* buffer, size_t size, const bool byteswap) {
+    u64 ramAddress = 0;
+
+    if (offset >= MEM2_START - MEM1_START) {
+        ramAddress = mEmulatedMEM2Start + offset - (MEM2_START - MEM1_START);
+    } else {
+        ramAddress = mEmulatedMEM1Start + offset;
+    }
+
+    SIZE_T numRead = 0;
+    std::vector<char> bufCopy(size);
+    std::memcpy(bufCopy.data(), buffer, size);
+
+    if (byteswap) {
+        switch (size) {
+            case 2: {
+                u16 val = 0;
+                std::memcpy(&val, bufCopy.data(), sizeof(val));
+                val = Swap16(val);
+                std::memcpy(bufCopy.data(), &val, sizeof(val));
+                break;
+            }
+            case 4: {
+                u32 val = 0;
+                std::memcpy(&val, bufCopy.data(), sizeof(val));
+                val = Swap32(val);
+                std::memcpy(bufCopy.data(), &val, sizeof(val));
+                break;
+            }
+            case 8: {
+                u64 val = 0;
+                std::memcpy(&val, buffer, sizeof(val));
+                val = Swap64(val);
+                std::memcpy(bufCopy.data(), &val, sizeof(val));
+                break;
+            }
+        }
+    }
+
+    bool writeProcessResult = WriteProcessMemory(mDolphinHandle, reinterpret_cast<void*>(ramAddress), bufCopy.data(), size, &numRead);
+
+    return (writeProcessResult && numRead == size);
 }
